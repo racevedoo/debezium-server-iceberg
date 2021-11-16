@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: Main
-    if: github.repository_owner == 'memiiso'
+    if: github.repository_owner == 'racevedoo'
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
@@ -26,4 +26,4 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/debezium-server-iceberg:latest
+          tags: ghcr.io/${{ github.repository_owner }}/debezium-server-iceberg:${{ github.sha }}
