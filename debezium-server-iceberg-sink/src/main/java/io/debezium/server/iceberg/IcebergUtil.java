@@ -19,6 +19,8 @@ import org.apache.iceberg.SortOrder;
 import org.apache.iceberg.data.GenericRecord;
 import org.apache.iceberg.exceptions.ValidationException;
 import org.apache.iceberg.types.Types;
+import org.apache.iceberg.types.Types.ListType;
+import org.apache.iceberg.types.Types.StringType;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,9 +73,11 @@ public class IcebergUtil {
           schemaColumns.add(Types.NestedField.optional(columnId, fieldName, Types.BinaryType.get()));
           break;
         case "array":
-          throw new RuntimeException("'" + fieldName + "' has Array type, Array type not supported!");
+          ListType innerType = ListType.ofOptional(columnId, StringType.get());
+          columnId++;
+          schemaColumns.add(Types.NestedField.optional(columnId, fieldName, innerType));
           //schemaColumns.add(Types.NestedField.optional(columnId, fieldName, Types.ListType.ofOptional()));
-          //break;
+          break;
         case "map":
           throw new RuntimeException("'" + fieldName + "' has Map type, Map type not supported!");
           //schemaColumns.add(Types.NestedField.optional(columnId, fieldName, Types.StringType.get()));
