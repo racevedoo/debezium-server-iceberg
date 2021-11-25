@@ -181,6 +181,10 @@ public class IcebergChangeConsumer extends BaseChangeConsumer implements Debeziu
     }
   }
 
+  protected Catalog getIcebergCatalog() {
+    return icebergCatalog;
+  }
+
 
   private Table createIcebergTable(TableIdentifier tableIdentifier,
                                    ChangeEvent<Object, Object> event) {

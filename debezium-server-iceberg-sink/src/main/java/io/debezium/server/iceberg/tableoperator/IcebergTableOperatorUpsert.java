@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -74,8 +75,8 @@ public class IcebergTableOperatorUpsert extends AbstractIcebergTableOperator {
     // upsertKeepDeletes = false, which means delete deletes
     List<Record> deleteRows = icebergRecords.stream()
         .filter(r ->
-                // anything is not an insert.
-                !r.getField(opColumn).equals("c")
+                // anything is not an insert or snapshot read.
+                !Set.of("c", "r").contains(r.getField(opColumn))
             // upsertKeepDeletes = false and its deleted record, which means delete deletes
             // || !(upsertKeepDeletes && r.getField(opColumn).equals("d"))
         ).collect(Collectors.toList());

@@ -8,6 +8,7 @@
 
 package io.debezium.server.iceberg;
 
+import com.google.common.collect.ImmutableList;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.server.iceberg.testresources.*;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -17,8 +18,11 @@ import io.quarkus.test.junit.TestProfile;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 
+import org.apache.iceberg.Snapshot;
+import org.apache.iceberg.catalog.TableIdentifier;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.junit.jupiter.api.Assertions;
@@ -163,6 +167,24 @@ public class IcebergChangeConsumerUpsertTest extends BaseSparkTest {
     ds.show();
     Assertions.assertEquals(ds.count(), 6);
     Assertions.assertEquals(ds.where("id = 1 AND __op= 'c' AND first_name= 'user2'").count(), 2);
+  }
+
+  @Test
+  public void testInitialSnapshot() throws Exception {
+    List<ChangeEvent<Object, Object>> records = new ArrayList<>();
+    records.add(getCustomerRecord(1, "r", "user1", 1L));
+    records.add(getCustomerRecord(2, "r", "user2", 1L));
+    consumer.handleBatch(records, TestUtil.getCommitter());
+
+    List<Snapshot> snapshots = ImmutableList.copyOf(consumer.getIcebergCatalog().loadTable(
+            TableIdentifier.parse("debeziumevents.debeziumcdc_testc_inventory_customers_upsert"))
+        .snapshots());
+
+
+    Assertions.assertEquals(1, snapshots.size());
+    Map<String, String> snapshotSummary = snapshots.get(0).summary();
+    Assertions.assertEquals("0", snapshotSummary.get("total-delete-files"));
+    Assertions.assertEquals("0", snapshotSummary.get("total-equality-deletes"));
   }
 
   private TestChangeEvent<Object, Object> getCustomerRecord(Integer id, String operation, String name, Long epoch) {
